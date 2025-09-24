@@ -1,0 +1,44 @@
+trigger: none  # No CI trigger; manual or schedule
+
+schedules:
+  - cron: "0 3 * * *"  # UTC time, daily at 3:00 AM
+    displayName: Daily VM Stop
+    branches:
+      include:
+        - main
+    always: true
+
+variables:
+  AZURE_SUBSCRIPTION: 'payasservice'
+  RESOURCE_GROUP: 'azuretest_rg'
+  VM_NAME: 'azuretest'
+  ACTION: 'stop'  # "start" or "stop"
+
+stages:
+  - stage: VM_Power
+    displayName: 'Start/Stop Azure VM'
+    jobs:
+      - job: PowerControl
+        displayName: 'Start or Stop VM'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: AzureCLI@2
+            displayName: 'Login to Azure'
+            inputs:
+               client-id: ${{ secrets.AZURE_CLIENT_ID }}
+               client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+               subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+               tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+              # azureSubscription: $(AZURE_SUBSCRIPTION)
+               scriptType: bash
+               scriptLocation: inlineScript
+               inlineScript: |
+                echo "Action: $(ACTION)"
+                if [ "$(ACTION)" == "start" ]; then
+                  az vm start --resource-group azuretest_rg --name azuretest
+                  echo "VM started"
+                else
+                  az vm deallocate --resource-group azuretest_rg --name azuretest
+                  echo "VM stopped"
+                fi

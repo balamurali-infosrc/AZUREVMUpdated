@@ -1,0 +1,47 @@
+name: Deploy Azure Windows VM using Terraform
+
+on:
+  push:
+    branches:
+      - main  # Trigger on pushes to the main branch
+permissions:
+  id-token: write
+  contents: read
+  pages: write
+jobs:
+  terraform:
+    name: Terraform Windows VM Deployment
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.8.5
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          # creds: ${{ secrets.AZURE_CREDENTIALS }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          # "activeDirectoryEndpointUrl": "https://login.microsoftonline.com"
+          # "resourceManagerEndpointUrl": "https://management.azure.com/"
+          # "activeDirectoryGraphResourceId": "https://graph.windows.net/"
+          # "sqlManagementEndpointUrl": "https://management.core.windows.net:8443/"
+          # "galleryEndpointUrl": "https://gallery.azure.com/"
+          # "managementEndpointUrl": "https://management.core.windows.net/"
+          auth-type: SERVICE_PRINCIPAL
+
+      - name: Terraform Init
+        run: terraform init 
+
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
