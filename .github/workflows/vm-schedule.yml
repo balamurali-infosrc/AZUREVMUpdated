@@ -12,7 +12,7 @@ variables:
   AZURE_SUBSCRIPTION: 'payasservice'
   RESOURCE_GROUP: 'azuretest_rg'
   VM_NAME: 'azuretest'
-  ACTION: 'stop'  # "start" or "stop"
+  ACTION: 'deallocate '  # "start" or "stop"
 
 stages:
   - stage: VM_Power
